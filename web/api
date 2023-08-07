@@ -1,0 +1,76 @@
+from time import sleep
+from json import dumps
+from kafka import KafkaProducer
+
+topic_name='sales'
+producer = KafkaProducer(bootstrap_servers=['localhost:9092'],value_serializer=lambda x: dumps(x).encode('utf-8'))
+
+for e in range(1000):
+    data = {'number' : e}
+    print(data)
+    producer.send(topic_name, value=data)
+    sleep(5)
+
+
+
+
+
+
+
+
+
+
+
+from fastapi import FastAPI
+from typing import Optional
+from pydantic import BaseModel
+app=FastAPI()
+
+
+@app.get('/blog')
+#optional is for any parameter u want it to be used if required otherwise it is none as defalut
+def index(limit=10,published:bool=True,sort:Optional[str]=None):
+    if published:
+      return{'blog':f'{limit} blog list'}
+    else:
+        return {'blog': f'{limit} all blog list'}
+
+def index():
+    return {'data':'list'}
+
+@app.get('/blog/{id}')
+def show(id:int):
+    return{'data':id}
+
+@app.get('/blog/unpublished')
+def unpublished():
+    return{'data':'unpublished'}
+
+@app.get('/blog/{id}/comments')
+def comments(id):
+    return{'data':{'1','2'}}
+
+#to pass parameters from client to api...we send them by body......for that body we need pydantic models
+
+class Blog(BaseModel):
+    title:str
+    body:str
+    published:Optional[bool]
+
+@app.post('/blog')
+def create_blog(request:Blog):
+    return {'data':f'{request.title}blog is created'}
+
+
+
+
+
+from pydantic import BaseModel
+
+class Blog(BaseModel):
+    title:str
+    body:str
+
+
+
+
