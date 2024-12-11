@@ -1,4 +1,41 @@
+function hasKey(obj, key) {
+  if (obj === null || typeof obj !== "object") return false;
 
+  if (obj.hasOwnProperty(key)) return true;
+
+  // Check if obj is an array
+  if (Array.isArray(obj)) {
+    return obj.some(item => hasKey(item, key));
+  }
+
+  // Check nested objects
+  return Object.values(obj).some(value => hasKey(value, key));
+}
+
+// Example usage
+const nestedData = {
+  name: "John",
+  details: {
+    age: 30,
+    address: {
+      city: "New York",
+      zip: 10001,
+    },
+  },
+  hobbies: [
+    {
+      name: "Reading",
+      type: "Educational",
+    },
+    {
+      name: "Cycling",
+    },
+  ],
+};
+
+console.log(hasKey(nestedData, "city")); // true
+console.log(hasKey(nestedData, "type")); // true
+console.log(hasKey(nestedData, "country")); // false
 @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400&display=swap');
 
   *{
