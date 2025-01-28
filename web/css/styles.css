@@ -13,6 +13,52 @@ function hasAnyKey(obj, keys) {
   return Object.values(obj).some(value => hasAnyKey(value, keys));
 }
 
+import React from 'react';
+import { Tabs, Tab } from '@mui/material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+
+const theme = createTheme({
+  components: {
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          color: '#9e9e9e', // Default color for enabled tabs
+          textTransform: 'none',
+          fontWeight: 400, // Regular font weight for enabled tabs
+          '&.Mui-selected': {
+            color: '#000', // Bold and black for active tab
+            fontWeight: 'bold',
+          },
+          '&.Mui-disabled': {
+            color: '#bdbdbd', // Gray color for disabled tabs
+          },
+        },
+      },
+    },
+  },
+});
+
+const TabExample = () => {
+  const [value, setValue] = React.useState(0);
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
+  return (
+    <ThemeProvider theme={theme}>
+      <Tabs value={value} onChange={handleChange}>
+        <Tab label="Enabled Tab" />
+        <Tab label="Active Tab" />
+        <Tab label="Disabled Tab" disabled />
+      </Tabs>
+    </ThemeProvider>
+  );
+};
+
+export default TabExample;
+
+
 // Example usage
 console.log(hasAnyKey(nestedData, ["city", "country"])); // true
 console.log(hasAnyKey(nestedData, ["country", "state"])); // false
