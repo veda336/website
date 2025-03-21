@@ -1,4 +1,4 @@
-function hasAnyKey(obj, keys) {
+ifunction hasAnyKey(obj, keys) {
   if (obj === null || typeof obj !== "object") return false;
 
   // Check if any key is present at the current level
@@ -61,4 +61,64 @@ export default TabExample;
 
 // Example usage
 console.log(hasAnyKey(nestedData, ["city", "country"])); // true
+
+
+
+
 console.log(hasAnyKey(nestedData, ["country", "state"])); // false
+
+
+function addObjectsDeep(json, targetId, newObjects) {
+  if (Array.isArray(json)) {
+    // Process each item in the array
+    return json.flatMap((item) =>
+      item.id === targetId
+        ? [item, ...newObjects] // Keep existing object and add new ones
+        : addObjectsDeep(item, targetId, newObjects)
+    );
+  } else if (typeof json === "object" && json !== null) {
+    // Iterate through the object's properties recursively
+    const updatedObject = {};
+    for (const [key, value] of Object.entries(json)) {
+      updatedObject[key] = addObjectsDeep(value, targetId, newObjects);
+    }
+    return updatedObject;
+  }
+
+  // Return value as is for primitive data
+  return json;
+}
+
+// Example JSON input
+const jsonData = {
+  user: {
+    id: 1,
+    name: "John",
+    orders: [
+      { id: 2, item: "Book" },
+      {
+        id: 3,
+        item: "Laptop",
+        details: {
+          warranty: true,
+          shipment: [{ id: 4, status: "Shipped" }],
+        },
+      },
+    ],
+  },
+};
+
+// ID to find and add objects to
+const targetId = 4;
+
+// 4 new objects to add
+const newObjects = [
+  { id: 5, status: "Processing" },
+  { id: 6, status: "Packed" },
+  { id: 7, status: "In Transit" },
+  { id: 8, status: "Delivered" },
+];
+
+const updatedJson = addObjectsDeep(jsonData, targetId, newObjects);
+
+console.log(JSON.stringify(updatedJson, null, 2));
