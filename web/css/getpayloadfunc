@@ -1,0 +1,68 @@
+function getPayload(state, data, payloadType = '') {
+  const traverseAndReplace = (data) => {
+    if (typeof data === 'string') {
+      // Replace placeholders within strings: {{path.to.value}}
+      return data.replace(/\{\{([\w.[\]"]+)\}\}/g, (_, path) => {
+        const value = resolvePath(state, path);
+        if (value === undefined) return '*'; // Mark for deletion
+        return typeof value === 'object' ? JSON.stringify(value) : value;
+      });
+    } else if (Array.isArray(data)) {
+      // Recursively handle arrays and remove undefined items
+      return data.map(traverseAndReplace).filter((item) => item !== undefined);
+    } else if (typeof data === 'object' && data !== null) {
+      // Recursively handle objects
+      if (payloadType === 'formdata') {
+        if (!!data?.name || !!data?.files) {
+          const { files, ...objData } = data;
+          const noFileEntries = getPayload(state, objData);
+          const noFileEntriesData = Object.fromEntries(
+            Object.entries(noFileEntries)
+              .map(([key, value]) => [key, traverseAndReplace(value)])
+              .filter(([, value]) => value !== undefined)
+          );
+          const filePayload = new FormData();
+          filePayload.append('content', JSON.stringify(noFileEntriesData));
+          if (state?.file_value) {
+            filePayload.append('files', state.file_value);
+          }
+          return filePayload;
+        }
+      } else if (payloadType === 'form') {
+        if (!!data?.nbkid || !!data?.name || !!data?.id) {
+          const withEntries = Object.fromEntries(
+            Object.entries(data)
+              .map(([key, value]) => [key, traverseAndReplace(value)])
+              .filter(([, value]) => value !== undefined)
+          );
+          const withoutFilePayload = new FormData();
+          withoutFilePayload.append('content', JSON.stringify(withEntries));
+          return withoutFilePayload;
+        }
+      } else {
+        const entries = Object.fromEntries(
+          Object.entries(data)
+            .map(([key, value]) => [key, traverseAndReplace(value)])
+            .filter(([, value]) => value !== undefined)
+        );
+        return Object.keys(entries).length > 0 ? entries : undefined;
+      }
+    }
+    return data; // Return as-is for primitives
+  };
+
+  const resolvePath = (obj, path) => {
+    // Supports dot notation and array indices
+    const parts = path.match(/[\w]+|\[\d+\]/g);
+    let value = obj;
+    for (let part of parts || []) {
+      part = part.startsWith('[') ? parseInt(part.slice(1, -1)) : part;
+      value = value?.[part];
+      if (value === undefined) return undefined;
+    }
+    return value;
+  };
+
+  state = traverseAndReplace(state); // Optional: replace within state itself?
+  return traverseAndReplace(data);
+}
