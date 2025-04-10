@@ -55,3 +55,13 @@ function resolvePlaceholdersFromLayout(container, payload) {
 
   return result;
 }
+
+
+
+
+const payload = {
+  "Label": "{col-1.settings.label}",
+  "Width": "{col-2.width}",
+  "Deep Name": "{col-3.meta.display.name}",
+  "Missing": "{col-999.title}"
+};
