@@ -1,4 +1,4 @@
-function resolvePlaceholdersFromLayout(container, payload) {
+ function resolvePlaceholdersFromLayout(container, payload) {
   const result = {};
 
   function getNestedValue(obj, path) {
@@ -65,3 +65,72 @@ const payload = {
   "Deep Name": "{col-3.meta.display.name}",
   "Missing": "{col-999.title}"
 };
+
+function getNestedValue(obj, path) {
+  return path.split(".").reduce((acc, key) => acc?.[key], obj);
+}
+
+function findColumnById(layouts, columnId) {
+  function searchLayouts(layoutArray) {
+    if (!Array.isArray(layoutArray)) return null;
+
+    for (const layout of layoutArray) {
+      // Search columns in rows
+      if (Array.isArray(layout?.row)) {
+        const found = searchColumns(layout.row);
+        if (found) return found;
+      }
+
+      // Search nested layouts inside layout objects
+      if (Array.isArray(layout?.layout)) {
+        const found = searchLayouts(layout.layout);
+        if (found) return found;
+      }
+    }
+
+    return null;
+  }
+
+  function searchColumns(columns) {
+    if (!Array.isArray(columns)) return null;
+
+    for (const column of columns) {
+      if (column?.id === columnId) return column;
+
+      // If column has nested layout, search recursively
+      if (Array.isArray(column?.layout)) {
+        const found = searchLayouts(column.layout);
+        if (found) return found;
+      }
+    }
+
+    return null;
+  }
+
+  return searchLayouts(layouts);
+}
+
+
+function fillPayload(containerJson, payload) {
+  const layouts = containerJson.container;
+  const output = {};
+
+  for (const key in payload) {
+    const placeholder = payload[key];
+    const match = placeholder.match(/^\{(.+?)\.(.+?)\}$/);
+
+    if (match) {
+      const [, colId, keyPath] = match;
+      const column = findColumnById(layouts, colId);
+      const value = column ? getNestedValue(column, keyPath) : "";
+      output[key] = value ?? "";
+    } else {
+      output[key] = placeholder;
+    }
+  }
+
+  return output;
+}
+
+
+
