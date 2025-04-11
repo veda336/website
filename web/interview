@@ -1,0 +1,19 @@
+import React, { useState } from 'react';
+
+function Profile() {
+  const [user, setUser] = useState({ name: 'Veda' });
+
+  const changeName = () => {
+    user.name = 'Alex';
+    setUser(user);
+  };
+
+  return (
+    <div>
+      <p>{user.name}</p>
+      <button onClick={changeName}>Change Name</button>
+    </div>
+  );
+}
+
+export default Profile;
