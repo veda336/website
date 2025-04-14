@@ -1,0 +1,15 @@
+if (typeof data === 'string') {
+  // If the entire string is a single placeholder, return the raw value.
+  const exactMatch = data.match(/^\{\{([\w.[\]"]+)\}\}$/);
+  if (exactMatch) {
+    const path = exactMatch[1];
+    return resolvePath(state, path);
+  }
+
+  // Otherwise, replace all placeholders in the string.
+  return data.replace(/\{\{([\w.[\]"]+)\}\}/g, (_, path) => {
+    const value = resolvePath(state, path);
+    if (value === undefined) return '*'; // Mark for deletion
+    return typeof value === 'object' ? JSON.stringify(value) : value;
+  });
+}
