@@ -30,3 +30,19 @@ if (typeof data === 'string') {
     });
   }
 }
+
+
+if (typeof data === 'string') {
+  const exactMatch = data.match(/^\{([\w.[\]"]+)\}$/);
+  if (exactMatch) {
+    const value = resolvePath(state, exactMatch[1]);
+    return value === undefined ? undefined : value;
+  } else {
+    return data.replace(/\{([\w.[\]"]+)\}/g, (_, path) => {
+      const value = resolvePath(state, path);
+      if (value === undefined) return '*';
+      return typeof value === 'object' ? JSON.stringify(value) : value;
+    });
+  }
+}
+
