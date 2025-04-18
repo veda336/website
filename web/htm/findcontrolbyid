@@ -1,0 +1,23 @@
+function findObjectsByGroup(data, groupKey, groupValue) {
+  const result = [];
+
+  function traverse(obj) {
+    if (typeof obj !== 'object' || obj === null) return;
+
+    if (obj[groupKey] === groupValue) {
+      result.push(obj);
+    }
+
+    for (const key in obj) {
+      const value = obj[key];
+      if (Array.isArray(value)) {
+        value.forEach(traverse);
+      } else if (typeof value === 'object') {
+        traverse(value);
+      }
+    }
+  }
+
+  traverse(data);
+  return result;
+}
