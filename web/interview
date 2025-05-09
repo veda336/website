@@ -39,6 +39,27 @@ const agGridStyles = {
     backgroundColor: 'green',
   },
 };
+.ag-theme-alpine .icon-cell {
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: visible;
+  height: 100%;
+}
+
+.ag-theme-alpine .icon-cell::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 2px;
+  width: 3px;
+  background-color: green;
+}
+
 
 export default agGridStyles;
 
