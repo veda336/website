@@ -17,3 +17,28 @@ function Profile() {
 }
 
 export default Profile;
+// style.js
+const agGridStyles = {
+  iconCell: {
+    padding: 0,
+    margin: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'visible',
+    height: '100%',
+  },
+  greenStrip: {
+    content: '""',
+    position: 'absolute',
+    left: 0,
+    top: '2px',
+    bottom: '2px',
+    width: '3px',
+    backgroundColor: 'green',
+  },
+};
+
+export default agGridStyles;
+
