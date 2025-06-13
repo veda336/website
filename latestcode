@@ -1,0 +1,95 @@
+import React, { useState, useRef } from 'react';
+import { AgGridReact } from 'ag-grid-react';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+
+const RowReorderWithButtons = () => {
+  const gridRef = useRef();
+  const [rowData, setRowData] = useState([
+    { id: 1, name: 'John' },
+    { id: 2, name: 'Alice' },
+    { id: 3, name: 'Bob' },
+    { id: 4, name: 'David' },
+  ]);
+
+  const moveRow = (index, direction) => {
+    const newData = [...rowData];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+
+    // Boundary checks
+    if (targetIndex < 0 || targetIndex >= newData.length) return;
+
+    // Swap rows
+    [newData[index], newData[targetIndex]] = [newData[targetIndex], newData[index]];
+    setRowData(newData);
+  };
+
+  const [columnDefs] = useState([
+    {
+      headerName: 'Actions',
+      field: 'actions',
+      cellRenderer: (params) => {
+        const rowIndex = params.node.rowIndex;
+        return (
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <button onClick={() => moveRow(rowIndex, 'up')} disabled={rowIndex === 0}>
+              ⬆️
+            </button>
+            <button
+              onClick={() => moveRow(rowIndex, 'down')}
+              disabled={rowIndex === rowData.length - 1}
+            >
+              ⬇️
+            </button>
+          </div>
+        );
+      },
+    },
+    { headerName: 'ID', field: 'id' },
+    { headerName: 'Name', field: 'name' },
+  ]);
+
+  return (
+    <div className="ag-theme-alpine" style={{ height: 300, width: 500 }}>
+      <AgGridReact
+        ref={gridRef}
+        rowData={rowData}
+        columnDefs={columnDefs}
+        rowSelection="single"
+        domLayout="autoHeight"
+        animateRows={true}
+      />
+    </div>
+  );
+};
+
+export default RowReorderWithButtons;
+
+
+
+
+
+
+
+---------------------------
+
+
+const handleSave = () => {
+  const orderedIds = rowData.map(row => row.id); // preserve order of IDs
+  console.log('Ordered row IDs to send to API:', orderedIds);
+
+  // Example API call
+  fetch('/api/save-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderedIds }),
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log('Saved order successfully:', data);
+    })
+    .catch(err => {
+      console.error('Error saving order:', err);
+    });
+};
+
