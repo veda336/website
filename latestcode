@@ -93,3 +93,261 @@ const handleSave = () => {
     });
 };
 
+
+
+
+
+footer....
+// context/FooterContext.jsx
+import React, { createContext, useContext, useState } from "react";
+
+const FooterContext = createContext();
+export const useFooter = () => useContext(FooterContext);
+
+export const FooterProvider = ({ children }) => {
+  const [tabDataMap, setTabDataMap] = useState({});
+  const [footerConfig, setFooterConfig] = useState({ buttons: [] });
+
+  const updateBreadcrumbData = (tabId, breadcrumbId, data) => {
+    setTabDataMap((prev) => ({
+      ...prev,
+      [tabId]: {
+        ...prev[tabId],
+        [breadcrumbId]: data,
+      },
+    }));
+  };
+
+  const saveBreadcrumbData = async (tabId, breadcrumbId) => {
+    const data = tabDataMap?.[tabId]?.[breadcrumbId];
+    if (!data) {
+      alert(`No data to save for ${tabId}/${breadcrumbId}`);
+      return;
+    }
+    console.log(`Saving`, { tabId, breadcrumbId, data });
+    alert(`Saved for ${tabId}/${breadcrumbId}`);
+    // await api.post(...);
+  };
+
+  const submitBreadcrumbData = async (tabId, breadcrumbId, onSuccessNext) => {
+    const data = tabDataMap?.[tabId]?.[breadcrumbId];
+    if (!data) {
+      alert(`No data to submit for ${tabId}/${breadcrumbId}`);
+      return;
+    }
+    console.log(`Submitting`, { tabId, breadcrumbId, data });
+    alert(`Submitted for ${tabId}/${breadcrumbId}`);
+    // await api.post(...);
+    if (onSuccessNext) onSuccessNext();
+  };
+
+  return (
+    <FooterContext.Provider
+      value={{
+        tabDataMap,
+        updateBreadcrumbData,
+        saveBreadcrumbData,
+        submitBreadcrumbData,
+        footerConfig,
+        setFooterConfig,
+      }}
+    >
+      {children}
+    </FooterContext.Provider>
+  );
+};
+
+
+footer jsx?????
+
+// components/Footer.jsx
+import React from "react";
+import { useFooter } from "../context/FooterContext";
+
+const Footer = ({ activeTabId, getActiveBreadcrumbId, goToNextBreadcrumb }) => {
+  const { footerConfig, saveBreadcrumbData, submitBreadcrumbData } = useFooter();
+
+  const handleClick = (button) => {
+    const bcId = getActiveBreadcrumbId();
+    if (button.type === "save") {
+      saveBreadcrumbData(activeTabId, bcId);
+    } else if (button.type === "submit") {
+      submitBreadcrumbData(activeTabId, bcId, goToNextBreadcrumb);
+    } else if (button.onClick) {
+      button.onClick();
+    }
+  };
+
+  return (
+    <footer style={{ padding: 12, background: "#f0f0f0", marginTop: 16 }}>
+      {footerConfig.buttons.map((btn, idx) => (
+        <button key={idx} onClick={() => handleClick(btn)} style={{ marginRight: 8 }}>
+          {btn.label}
+        </button>
+      ))}
+    </footer>
+  );
+};
+
+export default Footer;
+
+
+breadcrum jsx
+// components/Breadcrumb.jsx
+import React from "react";
+
+const Breadcrumb = ({ breadcrumbId, data, setData }) => {
+  return (
+    <div>
+      <h4>{breadcrumbId}</h4>
+      <input
+        type="text"
+        placeholder={`Enter data for ${breadcrumbId}`}
+        value={data.field1 || ""}
+        onChange={(e) => setData({ ...data, field1: e.target.value })}
+        style={{ width: "60%", padding: 6 }}
+      />
+    </div>
+  );
+};
+
+export default Breadcrumb;
+
+
+tabcobtrnt jsx
+// components/TabContent.jsx
+import React, { useEffect, useState } from "react";
+import Breadcrumb from "./Breadcrumb";
+import { useFooter } from "../context/FooterContext";
+
+const breadcrumbList = ["breadcrumb1", "breadcrumb2", "breadcrumb3"];
+
+const TabContent = ({ tabId, setTabFooterMethods }) => {
+  const [activeBreadcrumbId, setActiveBreadcrumbId] = useState(breadcrumbList[0]);
+  const [localData, setLocalData] = useState({});
+  const { updateBreadcrumbData, setFooterConfig } = useFooter();
+
+  // Sync breadcrumb data to context for Footer access
+  useEffect(() => {
+    updateBreadcrumbData(tabId, activeBreadcrumbId, localData);
+  }, [localData, activeBreadcrumbId, tabId]);
+
+  // Footer config for this tab
+  useEffect(() => {
+    setFooterConfig({
+      buttons: [
+        { label: "Save", type: "save" },
+        { label: "Submit & Next", type: "submit" },
+      ],
+    });
+  }, [setFooterConfig]);
+
+  const goToNextBreadcrumb = () => {
+    const idx = breadcrumbList.indexOf(activeBreadcrumbId);
+    if (idx < breadcrumbList.length - 1) {
+      setActiveBreadcrumbId(breadcrumbList[idx + 1]);
+    } else {
+      alert("All breadcrumbs completed.");
+    }
+  };
+
+  useEffect(() => {
+    setTabFooterMethods({
+      getActiveBreadcrumbId: () => activeBreadcrumbId,
+      goToNextBreadcrumb,
+    });
+  }, [activeBreadcrumbId]);
+
+  return (
+    <div style={{ padding: 12 }}>
+      <h3>Active Tab: {tabId}</h3>
+      {/* Breadcrumb Switcher */}
+      {breadcrumbList.map((bc) => (
+        <button
+          key={bc}
+          onClick={() => setActiveBreadcrumbId(bc)}
+          style={{
+            marginRight: 6,
+            background: bc === activeBreadcrumbId ? "#ddd" : "#fff",
+          }}
+        >
+          {bc}
+        </button>
+      ))}
+
+      <div style={{ marginTop: 12 }}>
+        <Breadcrumb
+          breadcrumbId={activeBreadcrumbId}
+          data={localData}
+          setData={setLocalData}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default TabContent;
+
+
+mainpagejs
+// MainPage.jsx
+import React, { useState } from "react";
+import { FooterProvider } from "./context/FooterContext";
+import Footer from "./components/Footer";
+import TabContent from "./components/TabContent";
+
+const tabList = ["tab1", "tab2", "tab3"];
+
+const MainPage = () => {
+  const [activeTabId, setActiveTabId] = useState(tabList[0]);
+  const [tabFooterMethods, setTabFooterMethods] = useState({
+    getActiveBreadcrumbId: () => "",
+    goToNextBreadcrumb: () => {},
+  });
+
+  const renderTab = (tabId) => (
+    <TabContent tabId={tabId} setTabFooterMethods={setTabFooterMethods} />
+  );
+
+  return (
+    <FooterProvider>
+      <div style={{ padding: 16 }}>
+        {/* Tab Switcher */}
+        {tabList.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTabId(tab)}
+            style={{
+              marginRight: 8,
+              background: tab === activeTabId ? "#ddd" : "#fff",
+            }}
+          >
+            {tab.toUpperCase()}
+          </button>
+        ))}
+
+        {/* Render Active Tab */}
+        {renderTab(activeTabId)}
+
+        {/* Shared Footer */}
+        <Footer
+          activeTabId={activeTabId}
+          getActiveBreadcrumbId={tabFooterMethods.getActiveBreadcrumbId}
+          goToNextBreadcrumb={tabFooterMethods.goToNextBreadcrumb}
+        />
+      </div>
+    </FooterProvider>
+  );
+};
+
+export default MainPage;
+
+
+
+
+
+
+
+
+
+
