@@ -344,6 +344,26 @@ export default MainPage;
 
 
 
+// constants/footerButtonConfig.js
+
+const footerButtonConfig = {
+  tab1: [
+    { label: "Save", type: "save" },
+    { label: "Submit & Next", type: "submit" },
+  ],
+  tab2: [
+    { label: "Save Only", type: "save" },
+    { label: "Submit", type: "submit" },
+  ],
+  tab3: [
+    { label: "Save Progress", type: "save" },
+    { label: "Complete", type: "submit" },
+  ],
+};
+
+export default footerButtonConfig;
+
+
 
 
 
