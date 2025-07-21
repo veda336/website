@@ -1,372 +1,4 @@
-import React, { useState, useRef } from 'react';
-import { AgGridReact } from 'ag-grid-react';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
-
-const RowReorderWithButtons = () => {
-  const gridRef = useRef();
-  const [rowData, setRowData] = useState([
-    { id: 1, name: 'John' },
-    { id: 2, name: 'Alice' },
-    { id: 3, name: 'Bob' },
-    { id: 4, name: 'David' },
-  ]);
-
-  const moveRow = (index, direction) => {
-    const newData = [...rowData];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-
-    // Boundary checks
-    if (targetIndex < 0 || targetIndex >= newData.length) return;
-
-    // Swap rows
-    [newData[index], newData[targetIndex]] = [newData[targetIndex], newData[index]];
-    setRowData(newData);
-  };
-
-  const [columnDefs] = useState([
-    {
-      headerName: 'Actions',
-      field: 'actions',
-      cellRenderer: (params) => {
-        const rowIndex = params.node.rowIndex;
-        return (
-          <div style={{ display: 'flex', gap: '4px' }}>
-            <button onClick={() => moveRow(rowIndex, 'up')} disabled={rowIndex === 0}>
-              ⬆️
-            </button>
-            <button
-              onClick={() => moveRow(rowIndex, 'down')}
-              disabled={rowIndex === rowData.length - 1}
-            >
-              ⬇️
-            </button>
-          </div>
-        );
-      },
-    },
-    { headerName: 'ID', field: 'id' },
-    { headerName: 'Name', field: 'name' },
-  ]);
-
-  return (
-    <div className="ag-theme-alpine" style={{ height: 300, width: 500 }}>
-      <AgGridReact
-        ref={gridRef}
-        rowData={rowData}
-        columnDefs={columnDefs}
-        rowSelection="single"
-        domLayout="autoHeight"
-        animateRows={true}
-      />
-    </div>
-  );
-};
-
-export default RowReorderWithButtons;
-
-
-
-
-
-
-
----------------------------
-
-
-const handleSave = () => {
-  const orderedIds = rowData.map(row => row.id); // preserve order of IDs
-  console.log('Ordered row IDs to send to API:', orderedIds);
-
-  // Example API call
-  fetch('/api/save-order', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ orderedIds }),
-  })
-    .then(res => res.json())
-    .then(data => {
-      console.log('Saved order successfully:', data);
-    })
-    .catch(err => {
-      console.error('Error saving order:', err);
-    });
-};
-
-
-
-
-
-footer....
-// context/FooterContext.jsx
-import React, { createContext, useContext, useState } from "react";
-
-const FooterContext = createContext();
-export const useFooter = () => useContext(FooterContext);
-
-export const FooterProvider = ({ children }) => {
-  const [tabDataMap, setTabDataMap] = useState({});
-  const [footerConfig, setFooterConfig] = useState({ buttons: [] });
-
-  const updateBreadcrumbData = (tabId, breadcrumbId, data) => {
-    setTabDataMap((prev) => ({
-      ...prev,
-      [tabId]: {
-        ...prev[tabId],
-        [breadcrumbId]: data,
-      },
-    }));
-  };
-
-  const saveBreadcrumbData = async (tabId, breadcrumbId) => {
-    const data = tabDataMap?.[tabId]?.[breadcrumbId];
-    if (!data) {
-      alert(`No data to save for ${tabId}/${breadcrumbId}`);
-      return;
-    }
-    console.log(`Saving`, { tabId, breadcrumbId, data });
-    alert(`Saved for ${tabId}/${breadcrumbId}`);
-    // await api.post(...);
-  };
-
-  const submitBreadcrumbData = async (tabId, breadcrumbId, onSuccessNext) => {
-    const data = tabDataMap?.[tabId]?.[breadcrumbId];
-    if (!data) {
-      alert(`No data to submit for ${tabId}/${breadcrumbId}`);
-      return;
-    }
-    console.log(`Submitting`, { tabId, breadcrumbId, data });
-    alert(`Submitted for ${tabId}/${breadcrumbId}`);
-    // await api.post(...);
-    if (onSuccessNext) onSuccessNext();
-  };
-
-  return (
-    <FooterContext.Provider
-      value={{
-        tabDataMap,
-        updateBreadcrumbData,
-        saveBreadcrumbData,
-        submitBreadcrumbData,
-        footerConfig,
-        setFooterConfig,
-      }}
-    >
-      {children}
-    </FooterContext.Provider>
-  );
-};
-
-
-footer jsx?????
-
-// components/Footer.jsx
-import React from "react";
-import { useFooter } from "../context/FooterContext";
-
-const Footer = ({ activeTabId, getActiveBreadcrumbId, goToNextBreadcrumb }) => {
-  const { footerConfig, saveBreadcrumbData, submitBreadcrumbData } = useFooter();
-
-  const handleClick = (button) => {
-    const bcId = getActiveBreadcrumbId();
-    if (button.type === "save") {
-      saveBreadcrumbData(activeTabId, bcId);
-    } else if (button.type === "submit") {
-      submitBreadcrumbData(activeTabId, bcId, goToNextBreadcrumb);
-    } else if (button.onClick) {
-      button.onClick();
-    }
-  };
-
-  return (
-    <footer style={{ padding: 12, background: "#f0f0f0", marginTop: 16 }}>
-      {footerConfig.buttons.map((btn, idx) => (
-        <button key={idx} onClick={() => handleClick(btn)} style={{ marginRight: 8 }}>
-          {btn.label}
-        </button>
-      ))}
-    </footer>
-  );
-};
-
-export default Footer;
-
-
-breadcrum jsx
-// components/Breadcrumb.jsx
-import React from "react";
-
-const Breadcrumb = ({ breadcrumbId, data, setData }) => {
-  return (
-    <div>
-      <h4>{breadcrumbId}</h4>
-      <input
-        type="text"
-        placeholder={`Enter data for ${breadcrumbId}`}
-        value={data.field1 || ""}
-        onChange={(e) => setData({ ...data, field1: e.target.value })}
-        style={{ width: "60%", padding: 6 }}
-      />
-    </div>
-  );
-};
-
-export default Breadcrumb;
-
-
-tabcobtrnt jsx
-// components/TabContent.jsx
-import React, { useEffect, useState } from "react";
-import Breadcrumb from "./Breadcrumb";
-import { useFooter } from "../context/FooterContext";
-
-const breadcrumbList = ["breadcrumb1", "breadcrumb2", "breadcrumb3"];
-
-const TabContent = ({ tabId, setTabFooterMethods }) => {
-  const [activeBreadcrumbId, setActiveBreadcrumbId] = useState(breadcrumbList[0]);
-  const [localData, setLocalData] = useState({});
-  const { updateBreadcrumbData, setFooterConfig } = useFooter();
-
-  // Sync breadcrumb data to context for Footer access
-  useEffect(() => {
-    updateBreadcrumbData(tabId, activeBreadcrumbId, localData);
-  }, [localData, activeBreadcrumbId, tabId]);
-
-  // Footer config for this tab
-  useEffect(() => {
-    setFooterConfig({
-      buttons: [
-        { label: "Save", type: "save" },
-        { label: "Submit & Next", type: "submit" },
-      ],
-    });
-  }, [setFooterConfig]);
-
-  const goToNextBreadcrumb = () => {
-    const idx = breadcrumbList.indexOf(activeBreadcrumbId);
-    if (idx < breadcrumbList.length - 1) {
-      setActiveBreadcrumbId(breadcrumbList[idx + 1]);
-    } else {
-      alert("All breadcrumbs completed.");
-    }
-  };
-
-  useEffect(() => {
-    setTabFooterMethods({
-      getActiveBreadcrumbId: () => activeBreadcrumbId,
-      goToNextBreadcrumb,
-    });
-  }, [activeBreadcrumbId]);
-
-  return (
-    <div style={{ padding: 12 }}>
-      <h3>Active Tab: {tabId}</h3>
-      {/* Breadcrumb Switcher */}
-      {breadcrumbList.map((bc) => (
-        <button
-          key={bc}
-          onClick={() => setActiveBreadcrumbId(bc)}
-          style={{
-            marginRight: 6,
-            background: bc === activeBreadcrumbId ? "#ddd" : "#fff",
-          }}
-        >
-          {bc}
-        </button>
-      ))}
-
-      <div style={{ marginTop: 12 }}>
-        <Breadcrumb
-          breadcrumbId={activeBreadcrumbId}
-          data={localData}
-          setData={setLocalData}
-        />
-      </div>
-    </div>
-  );
-};
-
-export default TabContent;
-
-
-mainpagejs
-// MainPage.jsx
-import React, { useState } from "react";
-import { FooterProvider } from "./context/FooterContext";
-import Footer from "./components/Footer";
-import TabContent from "./components/TabContent";
-
-const tabList = ["tab1", "tab2", "tab3"];
-
-const MainPage = () => {
-  const [activeTabId, setActiveTabId] = useState(tabList[0]);
-  const [tabFooterMethods, setTabFooterMethods] = useState({
-    getActiveBreadcrumbId: () => "",
-    goToNextBreadcrumb: () => {},
-  });
-
-  const renderTab = (tabId) => (
-    <TabContent tabId={tabId} setTabFooterMethods={setTabFooterMethods} />
-  );
-
-  return (
-    <FooterProvider>
-      <div style={{ padding: 16 }}>
-        {/* Tab Switcher */}
-        {tabList.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTabId(tab)}
-            style={{
-              marginRight: 8,
-              background: tab === activeTabId ? "#ddd" : "#fff",
-            }}
-          >
-            {tab.toUpperCase()}
-          </button>
-        ))}
-
-        {/* Render Active Tab */}
-        {renderTab(activeTabId)}
-
-        {/* Shared Footer */}
-        <Footer
-          activeTabId={activeTabId}
-          getActiveBreadcrumbId={tabFooterMethods.getActiveBreadcrumbId}
-          goToNextBreadcrumb={tabFooterMethods.goToNextBreadcrumb}
-        />
-      </div>
-    </FooterProvider>
-  );
-};
-
-export default MainPage;
-
-
-
-// constants/footerButtonConfig.js
-
-const footerButtonConfig = {
-  tab1: [
-    { label: "Save", type: "save" },
-    { label: "Submit & Next", type: "submit" },
-  ],
-  tab2: [
-    { label: "Save Only", type: "save" },
-    { label: "Submit", type: "submit" },
-  ],
-  tab3: [
-    { label: "Save Progress", type: "save" },
-    { label: "Complete", type: "submit" },
-  ],
-};
-
-export default footerButtonConfig;
-
-
-
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Tabs,
   Tab,
@@ -380,10 +12,10 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-const TabsWithArrowDropdownArray = () => {
+function TabsWithArrowDropdownArray() {
   const [tabIndex, setTabIndex] = useState(0);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedDropdownValues, setSelectedDropdownValues] = useState<{ [key: number]: string }>({});
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedDropdownValues, setSelectedDropdownValues] = useState({});
 
   const tabsData = [
     { label: 'Tab 1' },
@@ -398,36 +30,34 @@ const TabsWithArrowDropdownArray = () => {
     },
   ];
 
-  const [currentDropdownTabIndex, setCurrentDropdownTabIndex] = useState<number | null>(null);
+  const [currentDropdownTabIndex, setCurrentDropdownTabIndex] = useState(null);
 
-  // Auto-select first option when tab with dropdown is selected if not already selected
-  useEffect(() => {
-    if (tabsData[tabIndex]?.dropdownOptions && selectedDropdownValues[tabIndex] === undefined) {
+  const handleTabChange = (_, newIndex) => {
+    // Auto-select first option on tab click if dropdown exists and not selected yet
+    if (
+      tabsData[newIndex]?.dropdownOptions &&
+      selectedDropdownValues[newIndex] === undefined
+    ) {
       setSelectedDropdownValues((prev) => ({
         ...prev,
-        [tabIndex]: tabsData[tabIndex].dropdownOptions![0],
+        [newIndex]: tabsData[newIndex].dropdownOptions[0],
       }));
     }
-  }, [tabIndex]);
 
-  const handleTabChange = (_: React.SyntheticEvent, newIndex: number) => {
     setTabIndex(newIndex);
     setAnchorEl(null);
     setCurrentDropdownTabIndex(null);
   };
 
-  const handleArrowClick = (
-    event: React.MouseEvent<HTMLButtonElement>,
-    index: number
-  ) => {
-    event.stopPropagation(); // prevent tab switching
+  const handleArrowClick = (event, index) => {
+    event.stopPropagation();
     if (tabIndex === index) {
       setAnchorEl(event.currentTarget);
       setCurrentDropdownTabIndex(index);
     }
   };
 
-  const handleDropdownSelect = (value: string) => {
+  const handleDropdownSelect = (value) => {
     if (currentDropdownTabIndex !== null) {
       setSelectedDropdownValues((prev) => ({
         ...prev,
@@ -441,7 +71,7 @@ const TabsWithArrowDropdownArray = () => {
   const open = Boolean(anchorEl);
 
   return (
-    <Box>
+    <Box p={2}>
       {/* Tabs */}
       <Tabs value={tabIndex} onChange={handleTabChange}>
         {tabsData.map((tab, index) => (
@@ -482,7 +112,7 @@ const TabsWithArrowDropdownArray = () => {
         {currentDropdownTabIndex !== null &&
           tabsData[currentDropdownTabIndex]?.dropdownOptions && (
             <List dense disablePadding>
-              {tabsData[currentDropdownTabIndex].dropdownOptions!.map((option) => {
+              {tabsData[currentDropdownTabIndex].dropdownOptions.map((option) => {
                 const selected =
                   selectedDropdownValues[currentDropdownTabIndex] === option;
                 return (
@@ -506,7 +136,7 @@ const TabsWithArrowDropdownArray = () => {
           )}
       </Popover>
 
-      {/* Render Dynamic Content Based on Dropdown Selection */}
+      {/* Display Selected Value and Render Dependent Components */}
       <Box mt={3} p={2} border="1px dashed grey">
         <Typography variant="subtitle1" gutterBottom>
           Currently Selected Tab: {tabsData[tabIndex].label}
@@ -520,22 +150,16 @@ const TabsWithArrowDropdownArray = () => {
           <Typography>No dropdown in this tab.</Typography>
         )}
 
-        {/* Example dynamic rendering based on selection */}
-        {tabsData[tabIndex].dropdownOptions && selectedDropdownValues[tabIndex] === 'Option 1B' && (
-          <Box mt={2} p={2} bgcolor="lightblue">
-            Rendering Component B because "Option 1B" is selected!
-          </Box>
-        )}
+        {/* Example: Render component based on selection */}
+        {tabsData[tabIndex].dropdownOptions &&
+          selectedDropdownValues[tabIndex] === 'Option 1B' && (
+            <Box mt={2} p={2} bgcolor="lightblue">
+              Rendering Component B because "Option 1B" is selected!
+            </Box>
+          )}
       </Box>
     </Box>
   );
-};
+}
 
 export default TabsWithArrowDropdownArray;
-
-
-
-
-
-
-
