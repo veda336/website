@@ -366,6 +366,174 @@ export default footerButtonConfig;
 
 
 
+import React, { useState, useEffect } from 'react';
+import {
+  Tabs,
+  Tab,
+  Popover,
+  List,
+  ListItemButton,
+  ListItemText,
+  Box,
+  Typography,
+  IconButton,
+} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+
+const TabsWithArrowDropdownArray = () => {
+  const [tabIndex, setTabIndex] = useState(0);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedDropdownValues, setSelectedDropdownValues] = useState<{ [key: number]: string }>({});
+
+  const tabsData = [
+    { label: 'Tab 1' },
+    {
+      label: 'Tab with Dropdown 1',
+      dropdownOptions: ['Option 1A', 'Option 1B', 'Option 1C'],
+    },
+    { label: 'Tab 3' },
+    {
+      label: 'Tab with Dropdown 2',
+      dropdownOptions: ['Option 2A', 'Option 2B'],
+    },
+  ];
+
+  const [currentDropdownTabIndex, setCurrentDropdownTabIndex] = useState<number | null>(null);
+
+  // Auto-select first option when tab with dropdown is selected if not already selected
+  useEffect(() => {
+    if (tabsData[tabIndex]?.dropdownOptions && selectedDropdownValues[tabIndex] === undefined) {
+      setSelectedDropdownValues((prev) => ({
+        ...prev,
+        [tabIndex]: tabsData[tabIndex].dropdownOptions![0],
+      }));
+    }
+  }, [tabIndex]);
+
+  const handleTabChange = (_: React.SyntheticEvent, newIndex: number) => {
+    setTabIndex(newIndex);
+    setAnchorEl(null);
+    setCurrentDropdownTabIndex(null);
+  };
+
+  const handleArrowClick = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    index: number
+  ) => {
+    event.stopPropagation(); // prevent tab switching
+    if (tabIndex === index) {
+      setAnchorEl(event.currentTarget);
+      setCurrentDropdownTabIndex(index);
+    }
+  };
+
+  const handleDropdownSelect = (value: string) => {
+    if (currentDropdownTabIndex !== null) {
+      setSelectedDropdownValues((prev) => ({
+        ...prev,
+        [currentDropdownTabIndex]: value,
+      }));
+    }
+    setAnchorEl(null);
+    setCurrentDropdownTabIndex(null);
+  };
+
+  const open = Boolean(anchorEl);
+
+  return (
+    <Box>
+      {/* Tabs */}
+      <Tabs value={tabIndex} onChange={handleTabChange}>
+        {tabsData.map((tab, index) => (
+          <Tab
+            key={tab.label}
+            label={
+              <Box display="flex" alignItems="center">
+                <Typography>{tab.label}</Typography>
+                {tab.dropdownOptions && (
+                  <IconButton
+                    size="small"
+                    onClick={(e) => handleArrowClick(e, index)}
+                    sx={{
+                      ml: 0.5,
+                      visibility: tabIndex === index ? 'visible' : 'hidden',
+                    }}
+                  >
+                    <ExpandMoreIcon />
+                  </IconButton>
+                )}
+              </Box>
+            }
+          />
+        ))}
+      </Tabs>
+
+      {/* Popover Dropdown */}
+      <Popover
+        open={open}
+        anchorEl={anchorEl}
+        onClose={() => {
+          setAnchorEl(null);
+          setCurrentDropdownTabIndex(null);
+        }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        {currentDropdownTabIndex !== null &&
+          tabsData[currentDropdownTabIndex]?.dropdownOptions && (
+            <List dense disablePadding>
+              {tabsData[currentDropdownTabIndex].dropdownOptions!.map((option) => {
+                const selected =
+                  selectedDropdownValues[currentDropdownTabIndex] === option;
+                return (
+                  <ListItemButton
+                    key={option}
+                    onClick={() => handleDropdownSelect(option)}
+                    selected={selected}
+                    sx={{
+                      '&.Mui-selected': {
+                        bgcolor: 'primary.main',
+                        color: 'primary.contrastText',
+                        '&:hover': { bgcolor: 'primary.dark' },
+                      },
+                    }}
+                  >
+                    <ListItemText primary={option} />
+                  </ListItemButton>
+                );
+              })}
+            </List>
+          )}
+      </Popover>
+
+      {/* Render Dynamic Content Based on Dropdown Selection */}
+      <Box mt={3} p={2} border="1px dashed grey">
+        <Typography variant="subtitle1" gutterBottom>
+          Currently Selected Tab: {tabsData[tabIndex].label}
+        </Typography>
+        {tabsData[tabIndex].dropdownOptions ? (
+          <Typography>
+            Selected Dropdown Value:{' '}
+            <strong>{selectedDropdownValues[tabIndex]}</strong>
+          </Typography>
+        ) : (
+          <Typography>No dropdown in this tab.</Typography>
+        )}
+
+        {/* Example dynamic rendering based on selection */}
+        {tabsData[tabIndex].dropdownOptions && selectedDropdownValues[tabIndex] === 'Option 1B' && (
+          <Box mt={2} p={2} bgcolor="lightblue">
+            Rendering Component B because "Option 1B" is selected!
+          </Box>
+        )}
+      </Box>
+    </Box>
+  );
+};
+
+export default TabsWithArrowDropdownArray;
+
+
 
 
 
