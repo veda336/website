@@ -1,0 +1,97 @@
+const initialState = {
+  activeTab: "",
+  tabs: {
+    LandingPage: {
+      componentsList: [],
+      droppedComponents: [],
+      activeDroppedComponentId: null,   // add active dropped component id here
+    },
+    ct1: {
+      subtabs: {
+        webForm1: {
+          componentsList: [],
+          droppedComponents: [],
+        },
+        webForm2: {
+          componentsList: [],
+          droppedComponents: [],
+        }
+      },
+      activeDroppedComponentId: null,
+    },
+    Record: {
+      componentsList: [],
+      droppedComponents: [],
+      activeDroppedComponentId: null,
+    }
+  }
+};
+
+const designSlice = createSlice({
+  name: "design",
+  initialState,
+  reducers: {
+    setActiveTab(state, action) {
+      state.activeTab = action.payload;
+    },
+
+    addDroppedComponent(state, action) {
+      // payload: { tabId, subTabId?, component }
+      const { tabId, subTabId, component } = action.payload;
+
+      if (subTabId) {
+        state.tabs[tabId].subtabs[subTabId].droppedComponents.push(component);
+      } else {
+        state.tabs[tabId].droppedComponents.push(component);
+      }
+
+      // set active dropped component id at tab level (not subtab)
+      state.tabs[tabId].activeDroppedComponentId = component.id;
+    },
+
+    updateDroppedComponent(state, action) {
+      // payload: { tabId, subTabId?, componentId, updates }
+      const { tabId, subTabId, componentId, updates } = action.payload;
+
+      let droppedArray;
+      if (subTabId) {
+        droppedArray = state.tabs[tabId].subtabs[subTabId].droppedComponents;
+      } else {
+        droppedArray = state.tabs[tabId].droppedComponents;
+      }
+
+      const compIndex = droppedArray.findIndex((c) => c.id === componentId);
+      if (compIndex !== -1) {
+        droppedArray[compIndex] = { ...droppedArray[compIndex], ...updates };
+      }
+    },
+
+    removeDroppedComponent(state, action) {
+      // payload: { tabId, subTabId?, componentId }
+      const { tabId, subTabId, componentId } = action.payload;
+
+      let droppedArray;
+      if (subTabId) {
+        droppedArray = state.tabs[tabId].subtabs[subTabId].droppedComponents;
+      } else {
+        droppedArray = state.tabs[tabId].droppedComponents;
+      }
+
+      const index = droppedArray.findIndex((c) => c.id === componentId);
+      if (index !== -1) {
+        droppedArray.splice(index, 1);
+      }
+
+      // If removed component was active, clear activeDroppedComponentId
+      if (state.tabs[tabId].activeDroppedComponentId === componentId) {
+        state.tabs[tabId].activeDroppedComponentId = null;
+      }
+    },
+
+    setActiveDroppedComponent(state, action) {
+      // payload: { tabId, componentId }
+      const { tabId, componentId } = action.payload;
+      state.tabs[tabId].activeDroppedComponentId = componentId;
+    },
+  },
+});
