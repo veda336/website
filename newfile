@@ -95,3 +95,42 @@ const designSlice = createSlice({
     },
   },
 });
+
+// Simulated Redux store
+let state = {
+  numbers: [1, 2, 3]
+};
+
+function reducer(action) {
+  switch (action.type) {
+    case 'ADD_NUMBER':
+      // ❌ Mutating inside reducer (Immer in RTK would allow this, but here it's plain Redux)
+      state.numbers.push(action.payload);
+      return state;
+    default:
+      return state;
+  }
+}
+
+function dispatch(action) {
+  state = reducer(action);
+}
+
+function getState() {
+  return state;
+}
+
+// --- Candidate's task starts here ---
+// Selector (like useSelector)
+const numbers = getState().numbers;
+
+// Direct mutation without dispatch
+numbers.push(4);
+
+// Dispatch with another push
+dispatch({ type: 'ADD_NUMBER', payload: 5 });
+
+// Final array
+const finalArray = getState().numbers;
+console.log(finalArray);
+
