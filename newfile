@@ -162,5 +162,9 @@ useEffect(() => {
 }, [query]);
 
 
+Write a search box that makes an API call only if the user stops typing for 500ms.
+
+
+
 
 
