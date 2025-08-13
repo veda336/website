@@ -134,3 +134,25 @@ dispatch({ type: 'ADD_NUMBER', payload: 5 });
 const finalArray = getState().numbers;
 console.log(finalArray);
 
+
+
+const initialState = {
+  items: [{ id: 1, name: 'Veda' }]
+};
+
+function reducer(state = initialState, action) {
+  switch (action.type) {
+    case 'COPY_AND_EDIT':
+      const copy = state.items; // Looks like a copy, but it's a reference
+      copy[0].name = 'Lead';
+      return { ...state, items: copy };
+    default:
+      return state;
+  }
+}
+
+let state = reducer(undefined, { type: 'COPY_AND_EDIT' });
+console.log(state.items[0].name);
+
+
+
