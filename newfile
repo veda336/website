@@ -155,4 +155,12 @@ let state = reducer(undefined, { type: 'COPY_AND_EDIT' });
 console.log(state.items[0].name);
 
 
+const [query, setQuery] = useState('');
+useEffect(() => {
+  const handler = setTimeout(() => fetchData(query), 500);
+  return () => clearTimeout(handler);
+}, [query]);
+
+
+
 
