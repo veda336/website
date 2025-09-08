@@ -1,0 +1,61 @@
+function findLayout(canvas, layoutId) {
+  return canvas.find(l => l.layoutId === layoutId) || null;
+}
+
+function findRow(rows, rowId) {
+  if (!rows) return null;
+
+  for (const row of rows) {
+    if (row.rowId === rowId) {
+      return row;
+    }
+
+    // 🔁 Check deeper in row.columns
+    for (const col of row.columns || []) {
+      if (col.rows) {
+        const found = findRow(col.rows, rowId);
+        if (found) return found;
+      }
+    }
+  }
+
+  return null;
+}
+
+function findColumn(row, columnId) {
+  if (!row?.columns) return null;
+
+  for (const col of row.columns) {
+    if (col.id === columnId) {
+      return col;
+    }
+
+    // 🔁 If column contains rows, search inside them too
+    if (col.rows) {
+      for (const nestedRow of col.rows) {
+        const found = findColumn(nestedRow, columnId);
+        if (found) return found;
+      }
+    }
+  }
+
+  return null;
+}
+
+function getSelectedConfig(canvas, selected) {
+  if (!selected) return null;
+
+  // 1. Find layout
+  const layout = findLayout(canvas, selected.layoutId);
+  if (!layout) return null;
+
+  // 2. Find row
+  const row = findRow(layout.rows, selected.rowId);
+  if (!row) return null;
+
+  // 3. If row selected
+  if (!selected.columnId) return row;
+
+  // 4. Column selected → search recursively inside this row
+  return findColumn(row, selected.columnId);
+}
