@@ -1,0 +1,44 @@
+function insertIntoCanvas(canvas, layoutId, targetRowId, item, columnIndex = null) {
+  return canvas.map(layout => {
+    if (layout.layoutId !== layoutId) return layout;
+
+    // 🔁 recursive helper to insert into rows
+    function insertRow(rows) {
+      return rows.map(row => {
+        // ✅ Found target row → inserting
+        if (row.rowId === targetRowId) {
+          // Case 1: inserting a ROW
+          if (item.type === "row") {
+            return {
+              ...row,
+              rows: row.rows ? [...row.rows, item] : [item]
+            };
+          }
+
+          // Case 2: inserting a COLUMN
+          if (item.type === "column") {
+            const cols = [...(row.columns || [])];
+            if (columnIndex !== null && columnIndex < cols.length) {
+              cols.splice(columnIndex, 0, item); // insert at index
+            } else {
+              cols.push(item); // push at end
+            }
+            return { ...row, columns: cols };
+          }
+        }
+
+        // 🔁 Keep searching inside columns that may contain rows
+        const updatedCols = row.columns?.map(col => {
+          if (col.rows) {
+            return { ...col, rows: insertRow(col.rows) };
+          }
+          return col;
+        });
+
+        return { ...row, columns: updatedCols || row.columns };
+      });
+    }
+
+    return { ...layout, rows: insertRow(layout.rows) };
+  });
+}
