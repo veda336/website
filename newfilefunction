@@ -40,3 +40,53 @@ function insertIntoCanvas(canvas, layoutId, targetId, item, columnIndex = null) 
     return { ...layout, rows: updatedRows };
   });
 }
+
+---new version
+function insertIntoCanvas(canvas, layoutId, targetId, item, columnIndex = null) {
+  return canvas.map(layout => {
+    if (layout.layoutId !== layoutId) return layout;
+
+    return {
+      ...layout,
+      rows: insertIntoRows(layout.rows, targetId, item, columnIndex)
+    };
+  });
+}
+
+function insertIntoRows(rows, targetId, item, columnIndex) {
+  return rows.map(row => {
+    // Case 1: inserting into a row's columns
+    if (row.rowId === targetId && item.type !== "row") {
+      const newColumns = [...row.columns];
+      if (columnIndex !== null) {
+        newColumns.splice(columnIndex, 0, item);
+      } else {
+        newColumns.push(item);
+      }
+      return { ...row, columns: newColumns };
+    }
+
+    // Case 2: search inside columns
+    const newColumns = row.columns.map(col => {
+      // If column matches target → insert row here
+      if (col.id === targetId && item.type === "row") {
+        return {
+          ...col,
+          rows: [...(col.rows || []), item]
+        };
+      }
+
+      // Recurse deeper inside column.rows if they exist
+      if (col.rows) {
+        return {
+          ...col,
+          rows: insertIntoRows(col.rows, targetId, item, columnIndex)
+        };
+      }
+
+      return col;
+    });
+
+    return { ...row, columns: newColumns };
+  });
+}
