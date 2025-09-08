@@ -90,3 +90,66 @@ function insertIntoRows(rows, targetId, item, columnIndex) {
     return { ...row, columns: newColumns };
   });
 }
+
+----////--/////::::latest version
+function insertIntoCanvas(canvas, layoutId, targetId, item, columnIndex = null) {
+  return canvas.map(layout => {
+    if (layout.layoutId !== layoutId) return layout;
+
+    // Case 1: targetId is null → add row directly at top-level of layout
+    if (!targetId) {
+      if (item.rowId) {
+        return {
+          ...layout,
+          rows: [...layout.rows, item] // insert row at top
+        };
+      }
+      return layout; // columns can’t be at top-level
+    }
+
+    // Case 2: search inside layout.rows
+    return {
+      ...layout,
+      rows: insertIntoRows(layout.rows, targetId, item, columnIndex)
+    };
+  });
+}
+
+function insertIntoRows(rows, targetId, item, columnIndex) {
+  return rows.map(row => {
+    // 👉 Insert column into this row
+    if (row.rowId === targetId && item.id && !item.rowId) {
+      const newColumns = [...row.columns];
+      if (columnIndex !== null) {
+        newColumns.splice(columnIndex, 0, item);
+      } else {
+        newColumns.push(item);
+      }
+      return { ...row, columns: newColumns };
+    }
+
+    // 👉 Search inside columns
+    const newColumns = row.columns.map(col => {
+      // Insert row into this column
+      if (col.id === targetId && item.rowId) {
+        return {
+          ...col,
+          rows: [...(col.rows || []), item]
+        };
+      }
+
+      // Recurse deeper if this column has nested rows
+      if (col.rows) {
+        return {
+          ...col,
+          rows: insertIntoRows(col.rows, targetId, item, columnIndex)
+        };
+      }
+
+      return col;
+    });
+
+    return { ...row, columns: newColumns };
+  });
+}
+
