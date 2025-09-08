@@ -1,46 +1,42 @@
-function insertIntoCanvas(canvas, layoutId, targetRowId, item, columnIndex = null) {
-  // clone whole canvas immutably
+function insertIntoCanvas(canvas, layoutId, targetId, item, columnIndex = null) {
   return canvas.map(layout => {
-    if (layout.layoutId !== layoutId) return layout; // skip other layouts
+    if (layout.layoutId !== layoutId) return layout;
 
-    // 🔁 recursive helper for inserting inside rows
-    function insertRow(rows) {
-      return rows.map(row => {
-        // ✅ Found target row
-        if (row.rowId === targetRowId) {
-          if (item.type === "row") {
-            // Add new row inside this row's rows
-            return {
-              ...row,
-              rows: row.rows ? [...row.rows, item] : [item]
-            };
-          }
-
-          if (item.type === "column") {
-            // Insert column inside this row's columns
-            const cols = [...(row.columns || [])];
-            if (columnIndex !== null && columnIndex < cols.length) {
-              cols.splice(columnIndex, 0, item); // insert at given index
-            } else {
-              cols.push(item); // push at end
-            }
-            return { ...row, columns: cols };
-          }
-        }
-
-        // 🔁 If not target, search deeper inside columns that may have nested rows
-        const updatedCols = row.columns?.map(col => {
-          if (col.rows) {
-            return { ...col, rows: insertRow(col.rows) };
-          }
-          return col;
-        });
-
-        return { ...row, columns: updatedCols || row.columns };
-      });
+    // Case 1: inserting at layout level → push row
+    if (!targetId) {
+      return {
+        ...layout,
+        rows: [...layout.rows, item]
+      };
     }
 
-    // ✅ Update only matching layout
-    return { ...layout, rows: insertRow(layout.rows) };
+    // Case 2: inserting inside a row's columns
+    const updatedRows = layout.rows.map(row => {
+      if (row.rowId === targetId && item.type !== "row") {
+        // inserting a column into this row
+        const newColumns = [...row.columns];
+        if (columnIndex !== null) {
+          newColumns.splice(columnIndex, 0, item);
+        } else {
+          newColumns.push(item);
+        }
+        return { ...row, columns: newColumns };
+      }
+
+      // Case 3: search inside columns for nested rows
+      const updatedColumns = row.columns.map(col => {
+        if (col.id === targetId && item.type === "row") {
+          return {
+            ...col,
+            rows: [...(col.rows || []), item]
+          };
+        }
+        return col;
+      });
+
+      return { ...row, columns: updatedColumns };
+    });
+
+    return { ...layout, rows: updatedRows };
   });
 }
