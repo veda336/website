@@ -1,25 +1,26 @@
 function insertIntoCanvas(canvas, layoutId, targetRowId, item, columnIndex = null) {
+  // clone whole canvas immutably
   return canvas.map(layout => {
-    if (layout.layoutId !== layoutId) return layout;
+    if (layout.layoutId !== layoutId) return layout; // skip other layouts
 
-    // 🔁 recursive helper to insert into rows
+    // 🔁 recursive helper for inserting inside rows
     function insertRow(rows) {
       return rows.map(row => {
-        // ✅ Found target row → inserting
+        // ✅ Found target row
         if (row.rowId === targetRowId) {
-          // Case 1: inserting a ROW
           if (item.type === "row") {
+            // Add new row inside this row's rows
             return {
               ...row,
               rows: row.rows ? [...row.rows, item] : [item]
             };
           }
 
-          // Case 2: inserting a COLUMN
           if (item.type === "column") {
+            // Insert column inside this row's columns
             const cols = [...(row.columns || [])];
             if (columnIndex !== null && columnIndex < cols.length) {
-              cols.splice(columnIndex, 0, item); // insert at index
+              cols.splice(columnIndex, 0, item); // insert at given index
             } else {
               cols.push(item); // push at end
             }
@@ -27,7 +28,7 @@ function insertIntoCanvas(canvas, layoutId, targetRowId, item, columnIndex = nul
           }
         }
 
-        // 🔁 Keep searching inside columns that may contain rows
+        // 🔁 If not target, search deeper inside columns that may have nested rows
         const updatedCols = row.columns?.map(col => {
           if (col.rows) {
             return { ...col, rows: insertRow(col.rows) };
@@ -39,6 +40,7 @@ function insertIntoCanvas(canvas, layoutId, targetRowId, item, columnIndex = nul
       });
     }
 
+    // ✅ Update only matching layout
     return { ...layout, rows: insertRow(layout.rows) };
   });
 }
