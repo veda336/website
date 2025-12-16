@@ -1,3 +1,9 @@
+
+Designed and implemented a reusable and scalable state-management architecture that supports drag-and-drop interactions at any depth level.
+	•	Enabled seamless accommodation of new tabs, nested tabs, and deeply nested canvases without requiring major refactoring.
+	•	Built a generic drag-and-drop framework that works consistently across multiple UI levels and layouts.
+	•	Simplified complex interactions by maintaining clean separation between UI structure and state logic.
+
  function resolvePlaceholdersFromLayout(container, payload) {
   const result = {};
 
