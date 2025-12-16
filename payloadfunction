@@ -133,4 +133,30 @@ function fillPayload(containerJson, payload) {
 }
 
 
+🔹 Ownership & Delivery
+	•	Took complete ownership of configuring the Admin Portal for the Hub, including planning, design alignment, UIs, and implementation.
+	•	Successfully implemented drag-and-drop functionality, enabling a flexible and intuitive configuration user experience.
+	•	Ensured consistency in UI components by aligning design with business expectations.
+
+🔹 Technical Contributions
+	•	Implemented a generic drag-and-drop framework that can easily scale to additional features in the future.
+	•	Simplified complex state handling for drag operations using clean, reusable state management patterns.
+	•	Improved code quality by following a modular approach, reducing duplication and easing future changes.
+
+🔹 Collaboration & Knowledge Sharing
+	•	Shared insights and explained the generic state-management approach to teammates, helping them solve similar use cases.
+	•	Facilitated knowledge transfer and guided teammates with reusable UI configuration logic.
+	•	Collaborated closely with cross-functional partners to ensure the delivered UX satisfied stakeholders.
+
+🔹 Initiative & Problem Solving
+	•	Took proactive steps to understand and solve technical and functional gaps.
+	•	Identified the simplest scalable architecture to support dynamic admin configuration needs.
+	•	Proposed improvements to make the configuration process more efficient for future enhancements.
+
+🔹 Impact
+	•	Reduced upcoming development efforts by enabling generic design patterns.
+	•	Improved team capability by sharing learnings and reusable logic.
+	•	Increased usability of the Hub admin portal through intuitive drag-and-drop configuration.
+
+
 
