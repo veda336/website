@@ -5,6 +5,19 @@ import {
   Popover,
   List,
   ListItemButton,
+
+This is to inform you that today we replaced the GBREG certificate currently used for the Python entitlement call.
+
+Since the ECHub certificate is not yet registered for entitlement, this change was implemented as a quick fix by renewing and reusing the existing GBREG certificate.
+
+Going forward, once the ECHub certificate is successfully registered with the entitlement service, we will switch to using our ECHub certificate.
+
+Please let us know if you have any questions or need additional information.
+
+Thanks,
+Veda
+
+
   ListItemText,
   Box,
   Typography,
